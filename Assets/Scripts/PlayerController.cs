@@ -11,6 +11,10 @@ public class PlayerController : MonoBehaviour
     private bool isMoving;
     private Vector2 _movement;
     private bool _canJump;
+    private void Start()
+    {
+        audioManager = AudioManagerController.Instance;
+    }
     private void FixedUpdate()
     {
         _compRigidbody.velocity = new Vector3(_movement.x * velocity, _compRigidbody.velocity.y , _movement.y * velocity);

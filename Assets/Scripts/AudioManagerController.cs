@@ -5,15 +5,18 @@ public class AudioManagerController : MonoBehaviour
 {
     public static AudioManagerController Instance { get; private set; }
     [SerializeField] private AudioMixer audioMixer;
+    [SerializeField] private Slider musicConfiguration;
+    [SerializeField] private Slider sfxConfiguration;
+    [SerializeField] private Slider masterConfiguration;
     [SerializeField] private AudioSource musicAudioSource;
     [SerializeField] private AudioSource sfxAudioSource;
     [SerializeField] private AudioClip[] musicClips;
     [SerializeField] private AudioClip[] sfxClips;
     [SerializeField] private AudioSettings audioSettings;
-    [SerializeField] private bool load_volume_settings;   
+    [SerializeField] private bool load_volume_settings;
     private void Awake()
     {
-        if(Instance != null && Instance != this)
+        if (Instance != null && Instance != this)
         {
             Destroy(this.gameObject);
         }
@@ -22,11 +25,7 @@ public class AudioManagerController : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(this.gameObject);
         }
-        AudioSource[] audioSources = GetComponentsInChildren<AudioSource>();
-        musicAudioSource = audioSources[0];
-        sfxAudioSource = audioSources[1];
     }
-    /*
     private void Start()
     {
         if (load_volume_settings == true)
@@ -34,7 +33,6 @@ public class AudioManagerController : MonoBehaviour
             LoadAudioSettings();
         }
     }
-    */
     public AudioSource MusicAudioSource
     {
         get
@@ -56,46 +54,42 @@ public class AudioManagerController : MonoBehaviour
             return sfxClips;
         }
     }
-    
-    public void SaveAudioSettings(GameObject Sliders)
+    public void SaveAudioSettings()
     {
-        Slider[] sliders = Sliders.GetComponentsInChildren<Slider>();       
-        audioSettings.musicVolume = sliders[0].value;
-        audioSettings.sfxVolume = sliders[2].value;
-        audioSettings.masterVolume = sliders[1].value;
+        audioSettings.musicVolume = musicConfiguration.value;
+        audioSettings.sfxVolume = sfxConfiguration.value;
+        audioSettings.masterVolume = masterConfiguration.value;
     }
-/*
     public void LoadAudioSettings()
     {
-        Instance.musicConfiguration.value = Instance.audioSettings.musicVolume;
-        Instance.sfxConfiguration.value = Instance.audioSettings.sfxVolume;
-        Instance.masterConfiguration.value = Instance.audioSettings.masterVolume;
+        musicConfiguration.value = audioSettings.musicVolume;
+        sfxConfiguration.value = audioSettings.sfxVolume;
+        masterConfiguration.value = audioSettings.masterVolume;
 
         SetVolumeOfMusic();
         SetVolumeOfSfx();
         SetVolumeOfMaster();
     }
-  */  
-    public void SetVolumeOfMusic(Slider musicConfiguration)
+    public void SetVolumeOfMusic()
     {
-        audioMixer.SetFloat("music",Mathf.Log10(musicConfiguration.value) * 20f);
+        audioMixer.SetFloat("music", Mathf.Log10(musicConfiguration.value) * 20f);
     }
-    public void SetVolumeOfSfx(Slider sfxConfiguration)
+    public void SetVolumeOfSfx()
     {
         audioMixer.SetFloat("sfx", Mathf.Log10(sfxConfiguration.value) * 20f);
     }
-    public void SetVolumeOfMaster(Slider masterConfiguration)
+    public void SetVolumeOfMaster()
     {
         audioMixer.SetFloat("master", Mathf.Log10(masterConfiguration.value) * 20f);
     }
     public void PlayMusic(int index)
     {
-        Instance.musicAudioSource.Stop();
-        Instance.musicAudioSource.clip = Instance.musicClips[index];
-        Instance.musicAudioSource.Play();
+        musicAudioSource.Stop();
+        musicAudioSource.clip = musicClips[index];
+        musicAudioSource.Play();
     }
     public void PlaySfx(int index)
     {
-        Instance.sfxAudioSource.PlayOneShot(Instance.sfxClips[index]);
+        sfxAudioSource.PlayOneShot(sfxClips[index]);
     }
 }
