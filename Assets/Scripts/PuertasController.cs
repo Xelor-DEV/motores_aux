@@ -9,7 +9,6 @@ public class PuertasController : MonoBehaviour
     {
         audioManager = AudioManagerController.Instance;
     }
-
     private void OnTriggerEnter(Collider other)
     {
         if (other.tag == "Player")
@@ -17,37 +16,15 @@ public class PuertasController : MonoBehaviour
             if (data.HasPlayerPassed == false)
             {
                 audioManager.PlaySfx(data.Sfx_player_passed_enter);
-            }
-            else
-            {
-                audioManager.PlaySfx(data.Sfx_player_passed_enter);
-            }
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.tag == "Player")
-        {
-            if(data.HasPlayerPassed == false)
-            {
-                Invoke("PlayExitSFX", 1f);
-
-                audioManager.PlayMusic(data.Music_background);
                 data.HasPlayerPassed = true;
+                audioManager.PlayMusic(data.Music_background);
             }
             else
             {
-                Invoke("PlayExitSFX", 1f);
-                audioManager.MusicAudioSource.Stop();
+                audioManager.PlaySfx(data.Sfx_player_passed_exit);
                 data.HasPlayerPassed = false;
+                audioManager.MusicAudioSource.Stop();
             }
-            
         }
     }
-    private void PlayExitSFX()
-    {
-        audioManager.PlaySfx(data.Sfx_player_passed_exit);
-    }
-
 }

@@ -92,4 +92,8 @@ public class AudioManagerController : MonoBehaviour
     {
         sfxAudioSource.PlayOneShot(sfxClips[index]);
     }
+    public float GetSfxLength(int index)
+    {
+        return sfxClips[index].length;
+    }
 }
