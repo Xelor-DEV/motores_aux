@@ -13,7 +13,40 @@ public class AudioManagerController : MonoBehaviour
     [SerializeField] private AudioClip[] musicClips;
     [SerializeField] private AudioClip[] sfxClips;
     [SerializeField] private AudioSettings audioSettings;
-    [SerializeField] private bool load_volume_settings;
+    public Slider MusicConfiguration
+    {
+        get 
+        { 
+            return musicConfiguration; 
+        }
+        set 
+        { musicConfiguration = value; 
+        }
+    }
+
+    public Slider SFXConfiguration
+    {
+        get 
+        { 
+            return sfxConfiguration; 
+        }
+        set 
+        { 
+            sfxConfiguration = value; 
+        }
+    }
+
+    public Slider MasterConfiguration
+    {
+        get 
+        { 
+            return masterConfiguration; 
+        }
+        set 
+        { 
+            masterConfiguration = value; 
+        }
+    }
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -24,13 +57,6 @@ public class AudioManagerController : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(this.gameObject);
-        }
-    }
-    private void Start()
-    {
-        if (load_volume_settings == true)
-        {
-            LoadAudioSettings();
         }
     }
     public AudioSource MusicAudioSource

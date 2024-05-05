@@ -2,22 +2,23 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
+
     [SerializeField] private Rigidbody _compRigidbody;
     [SerializeField] private float velocity;
     [SerializeField] private float jumpForce;
     [SerializeField] private float checkdistance;
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private AudioManagerController audioManager;
+    [SerializeField] private GameManagerController gameManager;
     [SerializeField] private Animator animatorPlayer;
-    [SerializeField] private UIManagerController uiManager;
-    private bool canInteract;
-    private NPCData currentNPCData;
     private bool isMoving;
     private Vector2 _movement = Vector2.zero;
     private bool _canJump;
+    private NPCController currentNPC;
     private void Start()
     {
         audioManager = AudioManagerController.Instance;
+        gameManager = GameManagerController.Instance;
     }
     private void FixedUpdate()
     {
@@ -56,7 +57,7 @@ public class PlayerController : MonoBehaviour
     }
     public void Jump(InputAction.CallbackContext context)
     {
-        if (context.performed)
+        if (context.performed == true)
         {
             if (_canJump)
             {
@@ -68,17 +69,31 @@ public class PlayerController : MonoBehaviour
     {
         if (other.tag == "NPC")
         {
-            canInteract = true;
+            currentNPC = other.GetComponent<NPCController>();
+        }
+        else if (other.tag == "Portal")
+        {
+            string sceneToChange = other.GetComponent<PortalController>().SceneName;
+            gameManager.ChangeScene(sceneToChange);
 
         }
     }
-
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("NPC"))
+        if (other.tag == "NPC")
         {
-            canInteract = false;
-            currentNPCData = null;
+            currentNPC = null;
         }
+    }
+    public void Interact(InputAction.CallbackContext context)
+    {
+        if (context.performed == true && currentNPC != null && currentNPC.IsPlayerInRange == true)
+        {
+            InteractProcess();
+        }
+    }
+    public void InteractProcess()
+    {
+        currentNPC.Interact();
     }
 }

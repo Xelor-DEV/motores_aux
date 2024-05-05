@@ -15,6 +15,4 @@ MonoBehaviour:
   sfx_player_passed_enter: 1
   sfx_player_passed_exit: 2
   music_background: 1
-  music_background_above: 0
   hasPlayerPassed: 0
-  is_the_first: 0
