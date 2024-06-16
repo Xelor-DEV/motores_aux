@@ -34,4 +34,12 @@ public class NPCData : ScriptableObject
             return waitTime;
         }
     }
+    [SerializeField] private bool patrollingOnStart;
+    public bool PatrollingOnStart
+    {
+        get 
+        { 
+            return patrollingOnStart; 
+        }
+    }
 }

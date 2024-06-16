@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 5
   npcName: Ultraman Fuma
-  message: No pareces un Ultraman, pero me dijeron que Jomap es el mejor charger
+  message: "Nunca te vi por aqu\xED, \xBFeres alg\xFAn h\xE9roe tokusatsu como yo?"
   waitTime: 4
+  patrollingOnStart: 1

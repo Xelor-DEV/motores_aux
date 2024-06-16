@@ -1,43 +1,27 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.AI;
 public class PlayerController : MonoBehaviour
 {
-
-    [SerializeField] private Rigidbody _compRigidbody;
-    [SerializeField] private float velocity;
-    [SerializeField] private float jumpForce;
-    [SerializeField] private float checkdistance;
-    [SerializeField] private LayerMask groundLayer;
     [SerializeField] private AudioManagerController audioManager;
     [SerializeField] private GameManagerController gameManager;
     [SerializeField] private Animator animatorPlayer;
+    [SerializeField] private Camera playerCamera;
     private bool isMoving;
-    private Vector2 _movement = Vector2.zero;
-    private bool _canJump;
+    private NavMeshAgent agent;
     private NPCController currentNPC;
+    private void Awake()
+    {
+        agent = GetComponent<NavMeshAgent>();
+    }
     private void Start()
     {
         audioManager = AudioManagerController.Instance;
         gameManager = GameManagerController.Instance;
     }
-    private void FixedUpdate()
-    {
-        Vector3 moveDirection = transform.forward * _movement.y + transform.right * _movement.x;
-        _compRigidbody.velocity = new Vector3(moveDirection.x * velocity, _compRigidbody.velocity.y, moveDirection.z * velocity);
-        _canJump = Physics.Raycast(transform.position,Vector3.down, checkdistance, groundLayer);
-        transform.Rotate(0, _movement.x * velocity, 0);
-        animatorPlayer.SetFloat("VelocityX", _movement.x);
-        animatorPlayer.SetFloat("VelocityY", _movement.y);
-
-    }
-    public void Movimiento(InputAction.CallbackContext context)
-    {
-        _movement = context.ReadValue<Vector2>() * velocity;
-    }
-
     private void Update()
     {
-        if (_movement.x != 0 || _movement.y != 0)
+        if (agent.velocity.magnitude > 0)
         {
             isMoving = true;
         }
@@ -54,15 +38,24 @@ public class PlayerController : MonoBehaviour
         {
             audioManager.SfxAudioSource.Stop();
         }
+        animatorPlayer.SetFloat("VelocityX", agent.velocity.x);
+        animatorPlayer.SetFloat("VelocityY", agent.velocity.z);
     }
-    public void Jump(InputAction.CallbackContext context)
+    public void Movimiento(InputAction.CallbackContext context)
     {
         if (context.performed == true)
         {
-            if (_canJump)
-            {
-                _compRigidbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-            }
+            MoveToPoint();
+        }
+    }
+    private void MoveToPoint()
+    {
+        Ray ray = playerCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity))
+        {
+            agent.destination = hit.point;
         }
     }
     private void OnTriggerEnter(Collider other)
@@ -75,7 +68,6 @@ public class PlayerController : MonoBehaviour
         {
             string sceneToChange = other.GetComponent<PortalController>().SceneName;
             gameManager.ChangeScene(sceneToChange);
-
         }
     }
     private void OnTriggerExit(Collider other)

@@ -1,18 +1,18 @@
 using System.Collections;
-using System;
 using UnityEngine;
-
+using UnityEngine.AI;
 public class NPCController : MonoBehaviour
 {
     [SerializeField] private Transform[] patrolPoints;
     [SerializeField] private UIManagerController uiManager;
     private int currentPointIndex = 0;
-    private Rigidbody _compRigidbody;
+    private NavMeshAgent agent;
     private bool isMoving = true;
     [SerializeField] private Animator animatorNPC;
     [SerializeField] private NPCData data;
     private bool isInteracting = false;
     private bool isPlayerInRange = false;
+    private int savedPointIndex = -1;
     public bool IsPlayerInRange
     {
         get 
@@ -27,48 +27,51 @@ public class NPCController : MonoBehaviour
             return data;
         }
     }
+    private void Awake()
+    {
+        agent = GetComponent<NavMeshAgent>();
+
+    }
     void Start()
     {
         uiManager = UIManagerController.Instance;
-        _compRigidbody = GetComponent<Rigidbody>();
-        if (patrolPoints.Length > 0)
+        agent.speed = data.Speed;
+        agent.acceleration = agent.speed;
+        if (data.PatrollingOnStart == true && patrolPoints.Length > 0)
         {
-            transform.position = patrolPoints[0].position + new Vector3(0.1f, 0, 0);
-            transform.LookAt(patrolPoints[currentPointIndex]);
+            MoveToNextPatrolPoint();
+        }
+        else
+        {
+            isMoving = false;
+            agent.isStopped = true;
         }
     }
-    void FixedUpdate()
+    void Update()
     {
-        if (patrolPoints.Length != 0 && isMoving == true && isInteracting == false )
+        if (isMoving == true && isInteracting == false && patrolPoints.Length > 0)
         {
-            Transform targetPoint = patrolPoints[currentPointIndex];
-            Vector3 directionToTarget = (targetPoint.position - transform.position).normalized;
-            _compRigidbody.velocity = directionToTarget * data.Speed;
-            transform.rotation = Quaternion.LookRotation(directionToTarget);
-            if (Vector3.Distance(transform.position, targetPoint.position) < 0.1f)
+            // remainingDistance se refiere a la distancia que le falta recorrer al agente para llegar a su destino actual
+            // pathPending sirve para saber si el agente esta buscando el camino a su destino
+            if (agent.pathPending == false && agent.remainingDistance < 0.1f)
             {
-                if (currentPointIndex + 1 < patrolPoints.Length)
-                {
-                    currentPointIndex = currentPointIndex + 1;
-                }
-                else
-                {
-                    currentPointIndex = 0;
-                }
-                _compRigidbody.velocity = Vector3.zero;
                 StartCoroutine(PauseAtPatrolPoint());
-                
             }
-            animatorNPC.SetFloat("VelX", _compRigidbody.velocity.x);
-            animatorNPC.SetFloat("VelY", _compRigidbody.velocity.z);
         }
+        animatorNPC.SetFloat("VelX", agent.velocity.x);
+        animatorNPC.SetFloat("VelY", agent.velocity.z);
     }
-
-    IEnumerator PauseAtPatrolPoint()
+    private void MoveToNextPatrolPoint()
     {
-        isMoving = false;
-        yield return new WaitForSeconds(data.WaitTime);
-        isMoving = true;
+        if (patrolPoints.Length == 0)
+        {
+            isMoving = false;
+        }
+        else
+        {
+            agent.destination = patrolPoints[currentPointIndex].position;
+            isMoving = true;
+        }
     }
     private void OnTriggerEnter(Collider other)
     {
@@ -84,25 +87,59 @@ public class NPCController : MonoBehaviour
             isPlayerInRange = false;
         }
     }
-    IEnumerator ShowDialogue()
+    private IEnumerator ShowDialogue()
     {
+        uiManager.ShowDialogueInCanvas(data.NpcName, data.Message);
         yield return new WaitForSeconds(uiManager.DialogueDuration);
         uiManager.Dialogue.SetActive(false);
         isInteracting = false;
+        if (isPlayerInRange == false && patrolPoints.Length > 0)
+        {
+            ResumeMovement();
+        }
+    }
+    private void ResumeMovement()
+    {
+        if (savedPointIndex != -1)
+        {
+            currentPointIndex = savedPointIndex;
+            savedPointIndex = -1;
+        }
         isMoving = true;
-        animatorNPC.SetFloat("VelX", 0);
-        animatorNPC.SetFloat("VelY", 0);
+        agent.isStopped = false;
+        MoveToNextPatrolPoint();
     }
     public void Interact()
     {
         if (isInteracting == false)
         {
+            savedPointIndex = currentPointIndex;
             isInteracting = true;
-            isMoving = false;
+            agent.isStopped = true;
             animatorNPC.SetFloat("VelX", 0);
             animatorNPC.SetFloat("VelY", 0);
-            uiManager.ShowDialogueInCanvas(data.NpcName, data.Message);
             StartCoroutine(ShowDialogue());
+        }
+    }
+    private IEnumerator PauseAtPatrolPoint()
+    {
+        isMoving = false;
+        agent.isStopped = true;
+        yield return new WaitForSeconds(data.WaitTime);
+        if (agent.remainingDistance < 0.1f && isInteracting == false && isPlayerInRange == false)
+        {
+            if (currentPointIndex >= patrolPoints.Length - 1)
+            {
+                currentPointIndex = 0;
+            }
+            else
+            {
+                currentPointIndex = currentPointIndex + 1;
+            }
+        }
+        if (isInteracting == false && isPlayerInRange == false)
+        {
+            ResumeMovement();
         }
     }
 }

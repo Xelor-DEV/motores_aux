@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 4
   npcName: Ultraman Titas
-  message: Me contaron que es requisito para ser del C26 no saber de comprension
-    lectora
+  message: "Me hace falta algo de ejercicio, volver\xE9 a caminar, colega."
   waitTime: 3
+  patrollingOnStart: 0
